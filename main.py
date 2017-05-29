@@ -4,7 +4,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from prettytable import PrettyTable as pt
+# from tabulate import tabulate
 import textwrap
+import re
 
 # path for phantomjs binary
 path_phantom = "phantomjs/bin/phantomjs"
@@ -17,23 +19,18 @@ driver = webdriver.PhantomJS(executable_path = path_phantom)
 
 print("Fetching results. Please wait...")
 driver.implicitly_wait(20)
-# go to the google home page
+
 driver.get("http://gen.lib.rus.ec/")
 
-# inputElement = driver.findElement(By.id("searchform"))
 inputElement = driver.find_element_by_id("searchform")
-
 
 # type in the search
 inputElement.send_keys("harry potter and the deathly hallows")
-# inputElement.send_keys(Keys.RETURN)
-# driver.find_element_by_css_selector('input[type=\"submit\"]').click()
 inputElement.submit()
 
 # the page is ajaxy so the title is originally this:
 print driver.title
 
-# WebDriverWait(driver, 10).until(EC.)
 table = driver.find_element_by_class_name("c")
 
 rows = table.find_elements_by_tag_name("tr")
@@ -46,7 +43,7 @@ header=[]
 # for i in range(1,9):
 for i in [1,2,6,7]:
 	header.append(columns[i].text)
-
+header.append("md5")
 table = pt(header)
 
 print "\nOK. Done!"
@@ -65,6 +62,7 @@ print "\nOK. Done!"
 # a = a.replace(italics, '')
 # print a
 # print type(a)
+# allrows = []
 
 for i in range(1, len(rows)):
 	all_columns = rows[i].find_elements_by_tag_name("td")
@@ -81,14 +79,15 @@ for i in range(1, len(rows)):
 			string = "\n".join(textwrap.wrap(string, 60))
 			string = string.encode('ascii', 'ignore')
 			each_row.append(string)
+			href = all_columns[j].find_element_by_id(str(all_columns[0].text)).get_attribute("href")
+			md5 = (re.findall("md5=(.*)", href))[0]
 		else:
 			each_row.append((all_columns[j].text).encode('ascii', 'ignore'))
-	# print each_row, "\n\n"
+	each_row.append(md5)
 	table.add_row(each_row)
 
+# table = tabulate(allrows, header, tablefmt = "simple")
 print table
-
-# print columns[2].find_element_by_partial_link_text("When Breath Becomes Air").get_attribute("href")
 
 
 # driver.quit()
