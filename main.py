@@ -13,7 +13,7 @@ def connection_init():
 		# Create a new instance of the Firefox driver
 		# driver = webdriver.Firefox()
 
-		# create an instance of phantomjs
+		# create a new instance of PhantomJS
 		driver = webdriver.PhantomJS(executable_path = path_phantom)
 
 		print("Fetching results. Please wait...")
@@ -32,7 +32,6 @@ def get_search_results_name(driver, search_str):
 		inputElement.send_keys(search_str)
 		inputElement.submit()
 
-		# the page is ajaxy so the title is originally this:
 		print driver.title
 
 		# the table which contains all the data has class name 'c'
@@ -74,7 +73,7 @@ def get_search_results_name(driver, search_str):
 					string = "\n".join(textwrap.wrap(string, 60))
 					string = string.encode('ascii', 'ignore')
 					each_row.append(string + "\n")
-					# get the a tag to extract the href attribute which contains md5
+					# get the 'a' tag to extract the href attribute which contains md5
 					href = all_columns[j].find_element_by_id(str(all_columns[0].text)).get_attribute("href")
 					md5 = (re.findall("md5=(.*)", href))[0]
 				else:
@@ -90,15 +89,33 @@ def get_search_results_name(driver, search_str):
 		driver.quit()
 
 def get_search_results_md5(driver, md5_search_str):
-	pass
+	inputElement = driver.find_element_by_id("searchform")
+	driver.find_element_by_css_selector("input[value='md5']").click()
+	# type in the search
+	inputElement.send_keys(md5_search_str)
+	inputElement.submit()
+
+	print driver.title
+	table = driver.find_element_by_class_name("c")
+
+	# extract all rows and columns from table
+	rows = table.find_elements_by_tag_name("tr")
+
+	columns_header = rows[0].find_elements_by_tag_name("td")
+	columns = rows[1].find_elements_by_tag_name("td")
+
+	for i in range(len(columns_header) - 1):
+		print "\n" + columns_header[i].text + ": " + columns[i].text
 
 
 if __name__ == "__main__":
 	driver = connection_init()
-	if len(sys.argv) == 1:
-		search_str = raw_input("The book you want to search:\n")
-		get_search_results_name(driver, search_str)
-	elif len(sys.argv) == 2:
-		get_search_results_md5(driver, sys.argv[1])
-	else:
-		print "Sorry, invalid option. Please try again"
+	get_search_results_md5(driver, '1532675066C4913E5D0F44B82014CA9E')
+
+	# if len(sys.argv) == 1:
+	# 	search_str = raw_input("The book you want to search:\n")
+	# 	get_search_results_name(driver, search_str)
+	# elif len(sys.argv) == 2:
+	# 	get_search_results_md5(driver, sys.argv[1])
+	# else:
+	# 	print "Sorry, invalid option. Please try again"
